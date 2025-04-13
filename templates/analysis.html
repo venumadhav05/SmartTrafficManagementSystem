@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Traffic Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #222;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        nav {
+            background-color: black;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+        }
+        .metrics {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .metric-box {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            width: 220px;
+            box-shadow: 0 0 10px #444;
+        }
+        canvas {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        select {
+            margin: 20px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/analysis">Traffic Analysis</a>
+    </nav>
+
+    <h1>Traffic Analysis Dashboard</h1>
+
+    <div class="metrics" id="metrics">
+        <div class="metric-box">
+            <h3>Total Vehicles Today</h3>
+            <p id="vehicles-today">Loading...</p>
+        </div>
+        <div class="metric-box">
+            <h3>Avg. Green Light Time</h3>
+            <p id="avg-wait">Loading...</p>
+        </div>
+        <div class="metric-box">
+            <h3>Peak Hour</h3>
+            <p id="peak-hour">Loading...</p>
+        </div>
+        <div class="metric-box">
+            <h3>Total Vehicles Recorded</h3>
+            <p id="total-vehicles">Loading...</p>
+        </div>
+    </div>
+
+    <h2>Peak Hour Trends</h2>
+    <select id="filter-select">
+        <option value="day">By Hour (Today)</option>
+        <option value="week">By Day</option>
+        <option value="month">By Week</option>
+    </select>
+
+    <canvas id="peakChart"></canvas>
+
+    <script>
+        async function loadMetrics() {
+            const res = await fetch('/get_traffic_metrics');
+            const data = await res.json();
+
+            document.getElementById('vehicles-today').innerText = data.total_vehicles_today;
+            document.getElementById('avg-wait').innerText = data.avg_waiting_time.toFixed(2) + ' sec';
+            document.getElementById('peak-hour').innerText = data.peak_hour;
+            document.getElementById('total-vehicles').innerText = data.total_vehicles_recorded;
+        }
+
+        let chart;
+
+        async function loadChart(filter = 'day') {
+            const res = await fetch(`/get_peak_hour_trends?filter=${filter}`);
+            const data = await res.json();
+
+            const ctx = document.getElementById('peakChart').getContext('2d');
+
+            if (chart) chart.destroy();
+
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Vehicle Count',
+                        data: data.values,
+                        backgroundColor: 'rgba(0, 200, 255, 0.7)'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: 'white'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'white'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'white'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.getElementById('filter-select').addEventListener('change', (e) => {
+            loadChart(e.target.value);
+        });
+
+        loadMetrics();
+        loadChart();
+    </script>
+</body>
+</html>

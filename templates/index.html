@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Smart Traffic System</title>
+    <style>
+        body {
+            background-color: #222;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        nav {
+            background-color: black;
+            padding: 10px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+        }
+
+        .status-box {
+            background-color: black;
+            color: lime;
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .intersection {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 20px auto;
+        }
+
+        .road {
+            position: absolute;
+            background-color: black;
+        }
+
+        .vertical { width: 80px; height: 400px; left: 160px; top: 0; }
+        .horizontal { width: 400px; height: 80px; top: 160px; left: 0; }
+
+        .traffic-light {
+            width: 25px;
+            height: 25px;
+            background-color: red;
+            position: absolute;
+            border-radius: 50%;
+            transition: background-color 0.5s ease-in-out;
+        }
+
+        .top { left: 185px; top: 120px; }
+        .bottom { left: 185px; top: 260px; }
+        .left { left: 120px; top: 185px; }
+        .right { left: 260px; top: 185px; }
+
+        /* Video Grid */
+        .video-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .video-container div {
+            text-align: center;
+        }
+
+        /* Car movement */
+        .car {
+            position: absolute;
+            width: 20px;
+            height: 40px;
+            background-color: blue;
+            border-radius: 5px;
+            transition: all 3s linear;
+        }
+
+        .car1 { left: 185px; top: -40px; }  /* From top */
+        .car2 { left: 185px; top: 400px; } /* From bottom */
+        .car3 { left: -40px; top: 185px; } /* From left */
+        .car4 { left: 400px; top: 185px; } /* From right */
+
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/analysis">Traffic Analysis</a>
+    </nav>
+
+    <h1>Smart Traffic Management System</h1>
+
+    <div class="status-box">
+        <h3>Current Green Signal: <span id="current-road">Loading...</span></h3>
+        <h3>Time Remaining: <span id="time-remaining">0</span> seconds</h3>
+    </div>
+
+    <h2>Live Traffic Cameras</h2>
+    <div class="video-container">
+        <div>
+            <h3>Road 1</h3>
+            <img src="{{ url_for('video_feed', road='road1') }}" width="400">
+        </div>
+        <div>
+            <h3>Road 2</h3>
+            <img src="{{ url_for('video_feed', road='road2') }}" width="400">
+        </div>
+        <div>
+            <h3>Road 3</h3>
+            <img src="{{ url_for('video_feed', road='road3') }}" width="400">
+        </div>
+        <div>
+            <h3>Road 4</h3>
+            <img src="{{ url_for('video_feed', road='road4') }}" width="400">
+        </div>
+    </div>
+
+    <h2>Traffic Intersection Simulation</h2>
+    <div class="intersection">
+        <div class="road vertical"></div>
+        <div class="road horizontal"></div>
+
+        <!-- Traffic Lights -->
+        <div class="traffic-light top" id="light-road1"></div>
+        <div class="traffic-light bottom" id="light-road2"></div>
+        <div class="traffic-light left" id="light-road3"></div>
+        <div class="traffic-light right" id="light-road4"></div>
+
+        <!-- Cars -->
+        <div class="car car1" id="car-road1"></div>
+        <div class="car car2" id="car-road2"></div>
+        <div class="car car3" id="car-road3"></div>
+        <div class="car car4" id="car-road4"></div>
+    </div>
+
+    <script>
+        let remainingTime = 0;
+        let currentRoad = "";
+
+        async function updateTrafficStatus() {
+            try {
+                let response = await fetch('/get_signal_status');
+                let data = await response.json();
+
+                let greenRoad = data.green_road;
+                remainingTime = data.duration;
+                
+                if (currentRoad !== greenRoad) {
+                    currentRoad = greenRoad; // Update only when road changes
+                }
+
+                document.getElementById("current-road").innerText = greenRoad;
+                document.getElementById("time-remaining").innerText = remainingTime;
+
+                let roads = ["road1", "road2", "road3", "road4"];
+
+                roads.forEach(road => {
+                    let light = document.getElementById(`light-${road}`);
+                    let car = document.getElementById(`car-${road}`);
+
+                    if (road === greenRoad) {
+                        light.style.backgroundColor = "green";
+                        moveCar(car, road);
+                    } else {
+                        light.style.backgroundColor = "red";
+                        stopCar(car, road);
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error fetching signal data:", error);
+            }
+        }
+
+        function updateTimer() {
+            if (remainingTime > 0) {
+                remainingTime--;
+                document.getElementById("time-remaining").innerText = remainingTime;
+            }
+        }
+
+        function moveCar(car, road) {
+            car.style.opacity = "1";
+            if (road === "road1") {
+                car.style.top = "160px";
+            } else if (road === "road2") {
+                car.style.top = "200px";
+            } else if (road === "road3") {
+                car.style.left = "160px";
+            } else if (road === "road4") {
+                car.style.left = "200px";
+            }
+        }
+
+        function stopCar(car, road) {
+            car.style.opacity = "0.5"; // Make cars fade when waiting
+            if (road === "road1") {
+                car.style.top = "-40px";
+            } else if (road === "road2") {
+                car.style.top = "400px";
+            } else if (road === "road3") {
+                car.style.left = "-40px";
+            } else if (road === "road4") {
+                car.style.left = "400px";
+            }
+        }
+
+        setInterval(updateTrafficStatus, 3000); // Refresh status every 3 sec
+        setInterval(updateTimer, 1000); // Update countdown every sec
+
+        updateTrafficStatus();
+    </script>
+</body>
+</html>  
