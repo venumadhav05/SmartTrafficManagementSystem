@@ -1,0 +1,23 @@
+# Ignore Python cache
+__pycache__/
+
+# Ignore VSCode settings
+.vscode/
+
+# Ignore environment files
+.env
+
+# Ignore log files
+*.log
+
+# Ignore virtual environments
+venv/
+
+.mp4
+.db
+.xlxs
+.names
+.Pt
+.cfg
+.json
+.weights
