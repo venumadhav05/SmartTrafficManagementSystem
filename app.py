@@ -13,6 +13,7 @@ from threading import Lock
 
 app = Flask(__name__)
 
+
 # Load YOLO model
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")

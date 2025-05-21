@@ -461,14 +461,14 @@
                 <p id="vehicles-today">
                     <span class="loading-spinner"></span>
                 </p>
-                <div class="trend" id="vehicles-trend"></div>
+                <div ></div>
             </div>
             <div class="metric-box">
                 <h3>Avg. Green Light Duration</h3>
                 <p id="avg-wait">
                     <span class="loading-spinner"></span>
                 </p>
-                <div class="trend" id="wait-trend"></div>
+                <div></div>
             </div>
             <div class="metric-box">
                 <h3>Peak Traffic Hour</h3>
@@ -622,28 +622,30 @@
             try {
                 const res = await fetch('/get_road_metrics?period=' + document.getElementById('road-performance-period').value);
                 // Simulated data since endpoint doesn't exist yet
-                const data = {
-                    road1: {
-                        vehicle_count: 432,
-                        avg_green_time: 25.3,
-                        efficiency: 82
-                    },
-                    road2: {
-                        vehicle_count: 378,
-                        avg_green_time: 22.1,
-                        efficiency: 85
-                    },
-                    road3: {
-                        vehicle_count: 518,
-                        avg_green_time: 31.5,
-                        efficiency: 89
-                    },
-                    road4: {
-                        vehicle_count: 290,
-                        avg_green_time: 19.8,
-                        efficiency: 76
-                    }
-                };
+                // const data = {
+                //     road1: {
+                //         vehicle_count: 432,
+                //         avg_green_time: 25.3,
+                //         efficiency: 82
+                //     },
+                //     road2: {
+                //         vehicle_count: 378,
+                //         avg_green_time: 22.1,
+                //         efficiency: 85
+                //     },
+                //     road3: {
+                //         vehicle_count: 518,
+                //         avg_green_time: 31.5,
+                //         efficiency: 89
+                //     },
+                //     road4: {
+                //         vehicle_count: 290,
+                //         avg_green_time: 19.8,
+                //         efficiency: 76
+                //     }
+                // };
+                const data = await res.json();  // ✅ use real backend response
+
                 
                 const roadMetricsContainer = document.getElementById('road-metrics');
                 roadMetricsContainer.innerHTML = '';
