@@ -688,7 +688,6 @@
     </div>
 
     <script>
-        // Traffic light states
         let currentSignal = "road1";
         let remainingTime = 10;
         let isRunning = false;
@@ -699,7 +698,6 @@
         let carMovementTimer;
         let totalVehicles = 0;
         
-        // Road traffic counters
         let roadCounts = {
             road1: 0,
             road2: 0,
@@ -707,26 +705,20 @@
             road4: 0
         };
         
-        // Car colors
         const carColors = ['car-red', 'car-blue', 'car-green', 'car-yellow', 'car-purple'];
         
-        // DOM references
         const carContainer = document.getElementById('car-container');
         const toggleBtn = document.getElementById('toggle-simulation');
         const changeSignalsBtn = document.getElementById('change-signals');
         
-        // Add event listeners
         toggleBtn.addEventListener('click', toggleSimulation);
         changeSignalsBtn.addEventListener('click', changeSignals);
         
-        // Initialize
         updateTrafficLights(currentSignal);
         updateStatusDisplay();
         fetchData();
         
-        // Fetch data periodically
         function fetchData() {
-            // Fetch vehicle counts
             fetch('/get_vehicle_counts')
                 .then(response => response.json())
                 .then(data => {
@@ -736,7 +728,6 @@
                     document.getElementById('active-vehicles').textContent = totalVehicles;
                 });
             
-            // Fetch signal status
             fetch('/get_signal_status')
                 .then(response => response.json())
                 .then(data => {
@@ -747,7 +738,6 @@
                     document.getElementById('time-remaining').textContent = remainingTime;
                 });
             
-            // Fetch traffic metrics
             fetch('/get_traffic_metrics')
                 .then(response => response.json())
                 .then(data => {
@@ -758,11 +748,9 @@
                     document.getElementById('avg-wait').textContent = data.avg_waiting_time.toFixed(1);
                 });
                 
-            // Schedule next update
             setTimeout(fetchData, 1000);
         }
         
-        // Update count display
         function updateCountDisplay() {
             document.getElementById('road1-count').textContent = roadCounts.road1;
             document.getElementById('road2-count').textContent = roadCounts.road2;
@@ -770,7 +758,6 @@
             document.getElementById('road4-count').textContent = roadCounts.road4;
         }
         
-        // Toggle simulation
         function toggleSimulation() {
             isRunning = !isRunning;
             
@@ -785,9 +772,7 @@
             }
         }
         
-        // Start simulation
         function startSimulation() {
-            // Start signal timer
             signalTimer = setInterval(() => {
                 remainingTime--;
                 updateStatusDisplay();
@@ -797,27 +782,22 @@
                 }
             }, 1000);
             
-            // Start generating cars
             simulationTimer = setInterval(() => {
                 if (Object.keys(activeCarIds).length < 15) { // Limit max cars
                     generateRandomCar();
                 }
             }, 1200);
             
-            // Start car movement
             carMovementTimer = setInterval(() => {
                 moveTraffic();
             }, 500);
         }
         
-        // Change traffic signals
         function changeSignals() {
-            // Cycle through signals: road1 -> road2 -> road3 -> road4
             const signals = ['road1', 'road2', 'road3', 'road4'];
             const currentIndex = signals.indexOf(currentSignal);
             const nextIndex = (currentIndex + 1) % signals.length;
             
-            // Change yellow first
             updateTrafficLights(currentSignal, 'yellow');
             
             setTimeout(() => {
@@ -828,9 +808,7 @@
             }, 1000);
         }
         
-        // Update traffic lights
         function updateTrafficLights(activeSignal, state = 'green') {
-    // Reset all lights to red
     document.getElementById('road1-red').className = 'traffic-light red';
     document.getElementById('road2-red').className = 'traffic-light red';
     document.getElementById('road3-red').className = 'traffic-light red';
@@ -846,7 +824,6 @@
     document.getElementById('road3-green').className = 'traffic-light';
     document.getElementById('road4-green').className = 'traffic-light';
     
-    // Set active light based on state (green or yellow)
     if (state === 'green') {
         document.getElementById(`${activeSignal}-green`).className = 'traffic-light green';
         document.getElementById(`${activeSignal}-red`).className = 'traffic-light';
@@ -856,53 +833,47 @@
     }
 }
 
-// Update status display
 function updateStatusDisplay() {
     document.getElementById('current-road').textContent = currentSignal.charAt(0).toUpperCase() + currentSignal.slice(1);
     document.getElementById('time-remaining').textContent = remainingTime;
 }
 
-// Generate a random car
 function generateRandomCar() {
     const roadOptions = ['road1', 'road2', 'road3', 'road4'];
     const randomRoad = roadOptions[Math.floor(Math.random() * roadOptions.length)];
     const carColorClass = carColors[Math.floor(Math.random() * carColors.length)];
     const carId = `car-${carIdCounter++}`;
     
-    // Create car element
     const car = document.createElement('div');
     car.id = carId;
     car.className = `car ${carColorClass}`;
     
-    // Position car based on road
     let startPosition, endPosition;
     
     switch(randomRoad) {
-        case 'road1': // Top road (south-bound)
+        case 'road1': 
             startPosition = { top: '-50px', left: '235px', transform: 'rotate(180deg)' };
             endPosition = { top: '500px', left: '235px', transform: 'rotate(180deg)' };
             break;
-        case 'road2': // Bottom road (north-bound)
+        case 'road2': 
             startPosition = { top: '500px', left: '265px', transform: 'rotate(0deg)' };
             endPosition = { top: '-50px', left: '265px', transform: 'rotate(0deg)' };
             break;
-        case 'road3': // Left road (east-bound)
+        case 'road3':
             startPosition = { top: '235px', left: '-50px', transform: 'rotate(90deg)' };
             endPosition = { top: '235px', left: '500px', transform: 'rotate(90deg)' };
             break;
-        case 'road4': // Right road (west-bound)
+        case 'road4': 
             startPosition = { top: '265px', left: '500px', transform: 'rotate(270deg)' };
             endPosition = { top: '265px', left: '-50px', transform: 'rotate(270deg)' };
             break;
     }
     
-    // Apply starting position
+
     Object.assign(car.style, startPosition);
     
-    // Add to car container
     carContainer.appendChild(car);
     
-    // Keep track of active cars
     activeCarIds[carId] = {
         element: car,
         road: randomRoad,
@@ -912,12 +883,10 @@ function generateRandomCar() {
         waitTime: 0
     };
     
-    // Increment road counter
     roadCounts[randomRoad]++;
     updateCountDisplay();
 }
 
-// Move traffic according to signals
 function moveTraffic() {
     const carIds = Object.keys(activeCarIds);
     
@@ -925,16 +894,12 @@ function moveTraffic() {
         const carInfo = activeCarIds[carId];
         const car = carInfo.element;
         
-        // Check if car is at intersection
         if (carInfo.position === 'start') {
-            // Move to intersection if car's road has green signal or it's already past intersection
             if (carInfo.road === currentSignal) {
                 carInfo.position = 'moving';
                 
-                // Animate car to end position
                 Object.assign(car.style, carInfo.endPosition);
                 
-                // Remove car after animation completes
                 setTimeout(() => {
                     if (activeCarIds[carId]) {
                         car.remove();
@@ -942,17 +907,14 @@ function moveTraffic() {
                     }
                 }, 1500);
             } else {
-                // Car is waiting at red light
                 carInfo.waitTime++;
             }
         }
     });
 }
 
-// Send data to server (simulated)
 function sendDataToServer() {
-    // In a real implementation, this would send data to the server
-    // For simulation purposes, we're just updating the local values
+    
     const waitTimes = Object.values(activeCarIds).map(car => car.waitTime);
     const avgWaitTime = waitTimes.length > 0 ? 
         waitTimes.reduce((sum, time) => sum + time, 0) / waitTimes.length * 0.5 : 0;
@@ -960,20 +922,16 @@ function sendDataToServer() {
     document.getElementById('avg-wait-time').textContent = avgWaitTime.toFixed(1);
     document.getElementById('avg-wait').textContent = avgWaitTime.toFixed(1);
     
-    // Update total vehicles today (increment for simulation)
     const totalToday = parseInt(document.getElementById('total-vehicles-today').textContent);
     document.getElementById('total-vehicles-today').textContent = totalToday + 1;
     
-    // Update total vehicles recorded
     const totalRecorded = parseInt(document.getElementById('total-vehicles-recorded').textContent);
     document.getElementById('total-vehicles-recorded').textContent = totalRecorded + 1;
     
-    // Update peak hour (just for simulation)
     const currentHour = new Date().getHours();
     document.getElementById('peak-hour').textContent = `${currentHour}:00`;
 }
 
-// Initialize data for simulation
 function initializeData() {
     document.getElementById('total-vehicles-today').textContent = Math.floor(Math.random() * 5000) + 3000;
     document.getElementById('avg-wait-time').textContent = (Math.random() * 20 + 10).toFixed(1);
@@ -981,11 +939,9 @@ function initializeData() {
     document.getElementById('total-vehicles-recorded').textContent = Math.floor(Math.random() * 100000) + 50000;
 }
 
-// Initialize data and start periodic update
 initializeData();
 setInterval(sendDataToServer, 5000);
 
-// For demonstration purposes, automatically start simulation after 2 seconds
 setTimeout(() => {
     if (!isRunning) {
         toggleSimulation();

@@ -1,157 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Traffic Analysis</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            background-color: #222;
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-        }
-        nav {
-            background-color: black;
-            padding: 10px;
-            margin-bottom: 20px;
-        }
-        nav a {
-            color: white;
-            text-decoration: none;
-            margin: 0 15px;
-            font-size: 18px;
-        }
-        .metrics {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-        .metric-box {
-            background-color: #333;
-            padding: 20px;
-            border-radius: 10px;
-            width: 220px;
-            box-shadow: 0 0 10px #444;
-        }
-        canvas {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        select {
-            margin: 20px;
-            padding: 10px;
-        }
-    </style>
-</head>
-<body>
-    <nav>
-        <a href="/">Home</a>
-        <a href="/analysis">Traffic Analysis</a>
-    </nav>
-
-    <h1>Traffic Analysis Dashboard</h1>
-
-    <div class="metrics" id="metrics">
-        <div class="metric-box">
-            <h3>Total Vehicles Today</h3>
-            <p id="vehicles-today">Loading...</p>
-        </div>
-        <div class="metric-box">
-            <h3>Avg. Green Light Time</h3>
-            <p id="avg-wait">Loading...</p>
-        </div>
-        <div class="metric-box">
-            <h3>Peak Hour</h3>
-            <p id="peak-hour">Loading...</p>
-        </div>
-        <div class="metric-box">
-            <h3>Total Vehicles Recorded</h3>
-            <p id="total-vehicles">Loading...</p>
-        </div>
-    </div>
-
-    <h2>Peak Hour Trends</h2>
-    <select id="filter-select">
-        <option value="day">By Hour (Today)</option>
-        <option value="week">By Day</option>
-        <option value="month">By Week</option>
-    </select>
-
-    <canvas id="peakChart"></canvas>
-
-    <script>
-        async function loadMetrics() {
-            const res = await fetch('/get_traffic_metrics');
-            const data = await res.json();
-
-            document.getElementById('vehicles-today').innerText = data.total_vehicles_today;
-            document.getElementById('avg-wait').innerText = data.avg_waiting_time.toFixed(2) + ' sec';
-            document.getElementById('peak-hour').innerText = data.peak_hour;
-            document.getElementById('total-vehicles').innerText = data.total_vehicles_recorded;
-        }
-
-        let chart;
-
-        async function loadChart(filter = 'day') {
-            const res = await fetch(`/get_peak_hour_trends?filter=${filter}`);
-            const data = await res.json();
-
-            const ctx = document.getElementById('peakChart').getContext('2d');
-
-            if (chart) chart.destroy();
-
-            chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        label: 'Vehicle Count',
-                        data: data.values,
-                        backgroundColor: 'rgba(0, 200, 255, 0.7)'
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: 'white'
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                color: 'white'
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: 'white'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        document.getElementById('filter-select').addEventListener('change', (e) => {
-            loadChart(e.target.value);
-        });
-
-        loadMetrics();
-        loadChart();
-    </script>
-</body>
-</html> -->
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -546,7 +392,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Table rows will be filled dynamically -->
+                        
                     </tbody>
                 </table>
             </div>
@@ -572,20 +418,16 @@
     </div>
 
     <script>
-        // Chart.js defaults for consistent styling
         Chart.defaults.color = '#ccc';
         Chart.defaults.borderColor = '#2a3a5a';
         Chart.defaults.font.family = "'Segoe UI', sans-serif";
         
-        // Store charts globally for updates
         let trafficVolumeChart, roadPerformanceChart, efficiencyChart, correlationChart;
         
-        // Function to format numbers with commas
         function formatNumber(num) {
             return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }
         
-        // Main dashboard metrics
         async function loadMetrics() {
             try {
                 const res = await fetch('/get_traffic_metrics');
@@ -596,7 +438,6 @@
                 document.getElementById('peak-hour').innerText = data.peak_hour + ':00';
                 document.getElementById('total-vehicles').innerText = formatNumber(data.total_vehicles_recorded);
                 
-                // Adding trend information
                 document.getElementById('vehicles-trend').innerHTML = `
                     <span class="trend up">▲ 12% from yesterday</span>
                 `;
@@ -610,41 +451,17 @@
                     <span>Efficiency: 87%</span>
                 `;
                 
-                // Also load road-specific metrics
                 await loadRoadMetrics();
             } catch (error) {
                 console.error('Error loading metrics:', error);
             }
         }
         
-        // Load road-specific metrics
         async function loadRoadMetrics() {
             try {
                 const res = await fetch('/get_road_metrics?period=' + document.getElementById('road-performance-period').value);
-                // Simulated data since endpoint doesn't exist yet
-                // const data = {
-                //     road1: {
-                //         vehicle_count: 432,
-                //         avg_green_time: 25.3,
-                //         efficiency: 82
-                //     },
-                //     road2: {
-                //         vehicle_count: 378,
-                //         avg_green_time: 22.1,
-                //         efficiency: 85
-                //     },
-                //     road3: {
-                //         vehicle_count: 518,
-                //         avg_green_time: 31.5,
-                //         efficiency: 89
-                //     },
-                //     road4: {
-                //         vehicle_count: 290,
-                //         avg_green_time: 19.8,
-                //         efficiency: 76
-                //     }
-                // };
-                const data = await res.json();  // ✅ use real backend response
+                
+                const data = await res.json();  
 
                 
                 const roadMetricsContainer = document.getElementById('road-metrics');
@@ -661,17 +478,17 @@
                     roadMetricsContainer.appendChild(roadElement);
                 }
                 
-                // Update road performance chart
+            
                 updateRoadPerformanceChart(data);
                 
-                // Update efficiency table
+              
                 updateEfficiencyTable(data);
             } catch (error) {
                 console.error('Error loading road metrics:', error);
             }
         }
         
-        // Traffic Volume Chart
+     
         async function loadTrafficVolumeChart(filter = 'day') {
             try {
                 const res = await fetch(`/get_peak_hour_trends?filter=${filter}`);
@@ -683,7 +500,7 @@
                     trafficVolumeChart.destroy();
                 }
                 
-                // Format labels based on filter type
+                
                 const formattedLabels = data.labels.map(label => {
                     if (filter === 'day') {
                         return `${label}:00`;
@@ -751,7 +568,6 @@
             }
         }
         
-        // Road Performance Chart
         function updateRoadPerformanceChart(data) {
             const ctx = document.getElementById('roadPerformanceChart').getContext('2d');
             
@@ -817,7 +633,6 @@
                 efficiencyChart.destroy();
             }
             
-            // Simulated data for efficiency over time
             const labels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'];
             const data = [82, 90, 75, 65, 78, 86];
             
@@ -860,7 +675,6 @@
             });
         }
         
-        // Update efficiency table
         function updateEfficiencyTable(data) {
             const tableBody = document.querySelector('#efficiency-table tbody');
             tableBody.innerHTML = '';
@@ -882,7 +696,6 @@
             }
         }
         
-        // Correlation Chart (Green Light Time vs Vehicle Count)
         function loadCorrelationChart(road = 'all') {
             const ctx = document.getElementById('correlationChart').getContext('2d');
             
@@ -890,13 +703,11 @@
                 correlationChart.destroy();
             }
             
-            // Simulated scatter plot data
             const generateScatterData = () => {
                 const data = [];
                 for (let i = 0; i < 50; i++) {
                     const vehicleCount = Math.floor(Math.random() * 30) + 10;
-                    // Formula based on app.py: green_time = max(10, min(60, 10 + (count // 5) * 2))
-                    // With some random variation
+                    
                     const greenTime = Math.max(10, Math.min(60, 10 + Math.floor(vehicleCount / 5) * 2 + (Math.random() * 5 - 2.5)));
                     data.push({
                         x: vehicleCount,
@@ -974,7 +785,7 @@
             });
         }
         
-        // Event listeners for filter changes
+        
         document.getElementById('filter-select').addEventListener('change', (e) => {
             loadTrafficVolumeChart(e.target.value);
         });
@@ -991,14 +802,14 @@
             loadCorrelationChart(e.target.value);
         });
         
-        // Initialize all charts and data
+        
         loadMetrics();
         loadTrafficVolumeChart('day');
         updateEfficiencyChart();
         loadCorrelationChart('all');
         
-        // Refresh data periodically
-        setInterval(loadMetrics, 60000); // Refresh metrics every minute
+        
+        setInterval(loadMetrics, 60000); 
     </script>
 </body>
 </html>

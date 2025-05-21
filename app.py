@@ -23,20 +23,17 @@ print("PyTorch Version:", torch.__version__)
 print("Torch Version:", torch.__version__)
 model = YOLO("yolov8n.pt").to(device)
 
-# Video sources
 video_sources = ["testvideo6.mp4", "testvideo5.mp4", "testvideo4.mp4", "testvideo3.mp4"]
 caps = [cv2.VideoCapture(src) for src in video_sources]
 for cap in caps:
     if not cap.isOpened():
         print(f"Error: Unable to open video source.")
 
-# Traffic data
 vehicle_counts = {"road1": 0, "road2": 0, "road3": 0, "road4": 0}
 current_green_road = "road1"
 signal_timers = {"road1": 10, "road2": 10, "road3": 10, "road4": 10}
 remaining_time = signal_timers[current_green_road]
 
-# Excel file setup
 EXCEL_FILE = "traffic_data.xlsx"
 file_lock = Lock()
 
@@ -186,12 +183,15 @@ def get_road_metrics():
         road_df = df[df["Road"] == road]
         total_vehicles = road_df["Vehicle Count"].sum()
         avg_green_time = road_df["Green Light Duration"].mean() if not road_df.empty else 0
-        efficiency = (total_vehicles / avg_green_time) * 2 if avg_green_time else 0  # basic efficiency formula
+        expected_rate = 1.5  # benchmark vehicles per sec
+        efficiency = ((total_vehicles / avg_green_time) / expected_rate) * 100 if avg_green_time else 0
+        efficiency = min(efficiency, 100)
+        # efficiency = (total_vehicles / avg_green_time) * 2 if avg_green_time else 0  # basic efficiency formula
 
         metrics[road] = {
             "vehicle_count": int(total_vehicles),
             "avg_green_time": round(avg_green_time, 1),
-            "efficiency": round(min(efficiency, 100))  # cap efficiency at 100%
+            "efficiency": round(min(efficiency, 90)) 
         }
 
     return jsonify(metrics)
