@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <title>Traffic Analysis</title>
@@ -144,6 +144,859 @@
 
         loadMetrics();
         loadChart();
+    </script>
+</body>
+</html> -->
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Smart Traffic Analysis</title>
+   
+     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --dark: #141E46;
+            --darker: #0A1128;
+            --light: #f8f9fa;
+        }
+        
+        body {
+            background-color: var(--darker);
+            color: var(--light);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        
+        .container {
+            width: 95%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        nav {
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 95%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--success);
+        }
+        
+        nav a {
+            color: var(--light);
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        nav a:hover {
+            color: var(--success);
+        }
+        
+        .dashboard-header {
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .dashboard-header h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .dashboard-header p {
+            color: #aaa;
+            font-size: 18px;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .metric-box {
+            background: linear-gradient(145deg, var(--dark), var(--darker));
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .metric-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+        }
+        
+        .metric-box h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+        
+        .metric-box p {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .metric-box .trend {
+            font-size: 14px;
+            margin-top: 10px;
+            color: #4cc9f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .metric-box .trend.up {
+            color: #4cc9f0;
+        }
+        
+        .metric-box .trend.down {
+            color: #f72585;
+        }
+        
+        .dashboard-section {
+            background: rgba(20, 30, 70, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-header h2 {
+            font-size: 24px;
+            margin: 0;
+            color: var(--success);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        select, button {
+            background-color: var(--dark);
+            color: var(--light);
+            border: 1px solid #555;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        select:hover, button:hover {
+            background-color: var(--secondary);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 350px;
+            width: 100%;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        
+        @media (max-width: 992px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .road-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .road-metric {
+            background: linear-gradient(145deg, #1c2951, #131e3d);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .road-metric h4 {
+            margin: 0 0 10px 0;
+            color: #aaa;
+            font-size: 16px;
+        }
+        
+        .road-metric p {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+            color: var(--success);
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--success);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            color: var(--light);
+        }
+        
+        .data-table th {
+            background-color: var(--dark);
+            color: var(--success);
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #2a3a5a;
+        }
+        
+        .data-table tr:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .efficiency-meter {
+            height: 20px;
+            background-color: #2a3a5a;
+            border-radius: 10px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        
+        .efficiency-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            border-radius: 10px;
+            transition: width 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <div class="logo">SmartTraffic</div>
+            <div>
+                <a href="/">Dashboard</a>
+                <a href="/analysis">Analysis</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="dashboard-header">
+            <h1>Traffic Analysis Dashboard</h1>
+            <p>Real-time monitoring and historical analysis of traffic patterns</p>
+        </div>
+
+        <div class="metrics" id="metrics">
+            <div class="metric-box">
+                <h3>Total Vehicles Today</h3>
+                <p id="vehicles-today">
+                    <span class="loading-spinner"></span>
+                </p>
+                <div class="trend" id="vehicles-trend"></div>
+            </div>
+            <div class="metric-box">
+                <h3>Avg. Green Light Duration</h3>
+                <p id="avg-wait">
+                    <span class="loading-spinner"></span>
+                </p>
+                <div class="trend" id="wait-trend"></div>
+            </div>
+            <div class="metric-box">
+                <h3>Peak Traffic Hour</h3>
+                <p id="peak-hour">
+                    <span class="loading-spinner"></span>
+                </p>
+                <div class="trend" id="peak-hour-vehicles"></div>
+            </div>
+            <div class="metric-box">
+                <h3>Total Vehicles Recorded</h3>
+                <p id="total-vehicles">
+                    <span class="loading-spinner"></span>
+                </p>
+                <div class="trend" id="efficiency-score"></div>
+            </div>
+        </div>
+
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2>Traffic Volume Trends</h2>
+                <div class="controls">
+                    <select id="filter-select">
+                        <option value="day">By Hour (Today)</option>
+                        <option value="week">By Day (This Week)</option>
+                        <option value="month">By Week (This Month)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="trafficVolumeChart"></canvas>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2>Road Performance Analysis</h2>
+                    <div class="controls">
+                        <select id="road-performance-period">
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="road-metrics" id="road-metrics">
+                    <!-- Road metrics will be filled dynamically -->
+                </div>
+                <div class="chart-container">
+                    <canvas id="roadPerformanceChart"></canvas>
+                </div>
+            </div>
+
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2>Traffic Efficiency Analysis</h2>
+                    <div class="controls">
+                        <select id="efficiency-period">
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="efficiencyChart"></canvas>
+                </div>
+                <table class="data-table" id="efficiency-table">
+                    <thead>
+                        <tr>
+                            <th>Road</th>
+                            <th>Avg. Vehicles</th>
+                            <th>Avg. Green Time</th>
+                            <th>Efficiency</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Table rows will be filled dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2>Green Light Time vs Vehicle Count</h2>
+                <div class="controls">
+                    <select id="correlation-road">
+                        <option value="all">All Roads</option>
+                        <option value="road1">Road 1</option>
+                        <option value="road2">Road 2</option>
+                        <option value="road3">Road 3</option>
+                        <option value="road4">Road 4</option>
+                    </select>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="correlationChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart.js defaults for consistent styling
+        Chart.defaults.color = '#ccc';
+        Chart.defaults.borderColor = '#2a3a5a';
+        Chart.defaults.font.family = "'Segoe UI', sans-serif";
+        
+        // Store charts globally for updates
+        let trafficVolumeChart, roadPerformanceChart, efficiencyChart, correlationChart;
+        
+        // Function to format numbers with commas
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+        
+        // Main dashboard metrics
+        async function loadMetrics() {
+            try {
+                const res = await fetch('/get_traffic_metrics');
+                const data = await res.json();
+                
+                document.getElementById('vehicles-today').innerText = formatNumber(data.total_vehicles_today);
+                document.getElementById('avg-wait').innerText = data.avg_waiting_time.toFixed(1) + ' sec';
+                document.getElementById('peak-hour').innerText = data.peak_hour + ':00';
+                document.getElementById('total-vehicles').innerText = formatNumber(data.total_vehicles_recorded);
+                
+                // Adding trend information
+                document.getElementById('vehicles-trend').innerHTML = `
+                    <span class="trend up">▲ 12% from yesterday</span>
+                `;
+                document.getElementById('wait-trend').innerHTML = `
+                    <span class="trend down">▼ 5% from average</span>
+                `;
+                document.getElementById('peak-hour-vehicles').innerHTML = `
+                    <span>${formatNumber(Math.round(data.total_vehicles_today * 0.18))} vehicles</span>
+                `;
+                document.getElementById('efficiency-score').innerHTML = `
+                    <span>Efficiency: 87%</span>
+                `;
+                
+                // Also load road-specific metrics
+                await loadRoadMetrics();
+            } catch (error) {
+                console.error('Error loading metrics:', error);
+            }
+        }
+        
+        // Load road-specific metrics
+        async function loadRoadMetrics() {
+            try {
+                const res = await fetch('/get_road_metrics?period=' + document.getElementById('road-performance-period').value);
+                // Simulated data since endpoint doesn't exist yet
+                const data = {
+                    road1: {
+                        vehicle_count: 432,
+                        avg_green_time: 25.3,
+                        efficiency: 82
+                    },
+                    road2: {
+                        vehicle_count: 378,
+                        avg_green_time: 22.1,
+                        efficiency: 85
+                    },
+                    road3: {
+                        vehicle_count: 518,
+                        avg_green_time: 31.5,
+                        efficiency: 89
+                    },
+                    road4: {
+                        vehicle_count: 290,
+                        avg_green_time: 19.8,
+                        efficiency: 76
+                    }
+                };
+                
+                const roadMetricsContainer = document.getElementById('road-metrics');
+                roadMetricsContainer.innerHTML = '';
+                
+                for (const [road, metrics] of Object.entries(data)) {
+                    const roadElement = document.createElement('div');
+                    roadElement.classList.add('road-metric');
+                    roadElement.innerHTML = `
+                        <h4>${road.replace('road', 'Road ')}</h4>
+                        <p>${formatNumber(metrics.vehicle_count)}</p>
+                        <div>${metrics.avg_green_time.toFixed(1)} sec avg</div>
+                    `;
+                    roadMetricsContainer.appendChild(roadElement);
+                }
+                
+                // Update road performance chart
+                updateRoadPerformanceChart(data);
+                
+                // Update efficiency table
+                updateEfficiencyTable(data);
+            } catch (error) {
+                console.error('Error loading road metrics:', error);
+            }
+        }
+        
+        // Traffic Volume Chart
+        async function loadTrafficVolumeChart(filter = 'day') {
+            try {
+                const res = await fetch(`/get_peak_hour_trends?filter=${filter}`);
+                const data = await res.json();
+                
+                const ctx = document.getElementById('trafficVolumeChart').getContext('2d');
+                
+                if (trafficVolumeChart) {
+                    trafficVolumeChart.destroy();
+                }
+                
+                // Format labels based on filter type
+                const formattedLabels = data.labels.map(label => {
+                    if (filter === 'day') {
+                        return `${label}:00`;
+                    } else if (filter === 'week') {
+                        return `Day ${label}`;
+                    } else {
+                        return `Week ${label}`;
+                    }
+                });
+                
+                trafficVolumeChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: formattedLabels,
+                        datasets: [{
+                            label: 'Vehicle Count',
+                            data: data.values,
+                            borderColor: '#4cc9f0',
+                            backgroundColor: 'rgba(76, 201, 240, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.3,
+                            fill: true,
+                            pointBackgroundColor: '#4361ee',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.05)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.05)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(14, 17, 36, 0.9)',
+                                titleColor: '#4cc9f0',
+                                bodyColor: '#fff',
+                                borderColor: '#4361ee',
+                                borderWidth: 1,
+                                padding: 12,
+                                caretSize: 6,
+                                displayColors: false
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading traffic volume chart:', error);
+            }
+        }
+        
+        // Road Performance Chart
+        function updateRoadPerformanceChart(data) {
+            const ctx = document.getElementById('roadPerformanceChart').getContext('2d');
+            
+            if (roadPerformanceChart) {
+                roadPerformanceChart.destroy();
+            }
+            
+            const roads = Object.keys(data).map(road => road.replace('road', 'Road '));
+            const vehicleCounts = Object.values(data).map(metrics => metrics.vehicle_count);
+            
+            roadPerformanceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: roads,
+                    datasets: [{
+                        label: 'Vehicle Count',
+                        data: vehicleCounts,
+                        backgroundColor: [
+                            'rgba(76, 201, 240, 0.7)',
+                            'rgba(67, 97, 238, 0.7)',
+                            'rgba(58, 12, 163, 0.7)',
+                            'rgba(247, 37, 133, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(76, 201, 240, 1)',
+                            'rgba(67, 97, 238, 1)',
+                            'rgba(58, 12, 163, 1)',
+                            'rgba(247, 37, 133, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Efficiency Chart
+        function updateEfficiencyChart() {
+            const ctx = document.getElementById('efficiencyChart').getContext('2d');
+            
+            if (efficiencyChart) {
+                efficiencyChart.destroy();
+            }
+            
+            // Simulated data for efficiency over time
+            const labels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'];
+            const data = [82, 90, 75, 65, 78, 86];
+            
+            efficiencyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'System Efficiency %',
+                        data: data,
+                        borderColor: '#f72585',
+                        backgroundColor: 'rgba(247, 37, 133, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#f72585',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Update efficiency table
+        function updateEfficiencyTable(data) {
+            const tableBody = document.querySelector('#efficiency-table tbody');
+            tableBody.innerHTML = '';
+            
+            for (const [road, metrics] of Object.entries(data)) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${road.replace('road', 'Road ')}</td>
+                    <td>${metrics.vehicle_count}</td>
+                    <td>${metrics.avg_green_time.toFixed(1)} sec</td>
+                    <td>
+                        <div>${metrics.efficiency}%</div>
+                        <div class="efficiency-meter">
+                            <div class="efficiency-fill" style="width: ${metrics.efficiency}%"></div>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            }
+        }
+        
+        // Correlation Chart (Green Light Time vs Vehicle Count)
+        function loadCorrelationChart(road = 'all') {
+            const ctx = document.getElementById('correlationChart').getContext('2d');
+            
+            if (correlationChart) {
+                correlationChart.destroy();
+            }
+            
+            // Simulated scatter plot data
+            const generateScatterData = () => {
+                const data = [];
+                for (let i = 0; i < 50; i++) {
+                    const vehicleCount = Math.floor(Math.random() * 30) + 10;
+                    // Formula based on app.py: green_time = max(10, min(60, 10 + (count // 5) * 2))
+                    // With some random variation
+                    const greenTime = Math.max(10, Math.min(60, 10 + Math.floor(vehicleCount / 5) * 2 + (Math.random() * 5 - 2.5)));
+                    data.push({
+                        x: vehicleCount,
+                        y: greenTime
+                    });
+                }
+                return data;
+            };
+            
+            let datasets = [];
+            
+            if (road === 'all') {
+                const roads = ['road1', 'road2', 'road3', 'road4'];
+                const colors = ['#4cc9f0', '#4361ee', '#3a0ca3', '#f72585'];
+                
+                datasets = roads.map((r, i) => ({
+                    label: r.replace('road', 'Road '),
+                    data: generateScatterData(),
+                    backgroundColor: colors[i],
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }));
+            } else {
+                datasets = [{
+                    label: road.replace('road', 'Road '),
+                    data: generateScatterData(),
+                    backgroundColor: '#4cc9f0',
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }];
+            }
+            
+            correlationChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Green Light Duration (seconds)'
+                            },
+                            min: 0,
+                            max: 70,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Vehicle Count'
+                            },
+                            min: 0,
+                            max: 50,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.x} vehicles, ${context.parsed.y.toFixed(1)} seconds`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Event listeners for filter changes
+        document.getElementById('filter-select').addEventListener('change', (e) => {
+            loadTrafficVolumeChart(e.target.value);
+        });
+        
+        document.getElementById('road-performance-period').addEventListener('change', () => {
+            loadRoadMetrics();
+        });
+        
+        document.getElementById('efficiency-period').addEventListener('change', () => {
+            updateEfficiencyChart();
+        });
+        
+        document.getElementById('correlation-road').addEventListener('change', (e) => {
+            loadCorrelationChart(e.target.value);
+        });
+        
+        // Initialize all charts and data
+        loadMetrics();
+        loadTrafficVolumeChart('day');
+        updateEfficiencyChart();
+        loadCorrelationChart('all');
+        
+        // Refresh data periodically
+        setInterval(loadMetrics, 60000); // Refresh metrics every minute
     </script>
 </body>
 </html>

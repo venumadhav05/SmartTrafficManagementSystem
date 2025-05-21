@@ -15,6 +15,11 @@ app = Flask(__name__)
 
 # Load YOLO model
 device = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"Using device: {device}")
+print("CUDA Available:", torch.cuda.is_available())
+print("CUDA Version:", torch.version.cuda)
+print("PyTorch Version:", torch.__version__)
+print("Torch Version:", torch.__version__)
 model = YOLO("yolov8n.pt").to(device)
 
 # Video sources
@@ -156,6 +161,40 @@ def get_peak_hour_trends():
     return jsonify({"labels": grouped.index.tolist(), "values": grouped.values.tolist()})
 
 threading.Thread(target=control_traffic_signals, daemon=True).start()
+
+# 2 may 2025
+@app.route("/get_road_metrics")
+def get_road_metrics():
+    period = request.args.get("period", "today")
+
+    with file_lock:
+        df = pd.read_excel(EXCEL_FILE, engine="openpyxl")
+        df["Timestamp"] = pd.to_datetime(df["Timestamp"])
+
+    now = datetime.datetime.now()
+
+    if period == "today":
+        df = df[df["Timestamp"].dt.date == now.date()]
+    elif period == "week":
+        df = df[df["Timestamp"].dt.isocalendar().week == now.isocalendar().week]
+    elif period == "month":
+        df = df[df["Timestamp"].dt.month == now.month]
+
+    metrics = {}
+    for road in ["road1", "road2", "road3", "road4"]:
+        road_df = df[df["Road"] == road]
+        total_vehicles = road_df["Vehicle Count"].sum()
+        avg_green_time = road_df["Green Light Duration"].mean() if not road_df.empty else 0
+        efficiency = (total_vehicles / avg_green_time) * 2 if avg_green_time else 0  # basic efficiency formula
+
+        metrics[road] = {
+            "vehicle_count": int(total_vehicles),
+            "avg_green_time": round(avg_green_time, 1),
+            "efficiency": round(min(efficiency, 100))  # cap efficiency at 100%
+        }
+
+    return jsonify(metrics)
+
 
 if __name__ == '__main__':
     app.run(debug=True) 
